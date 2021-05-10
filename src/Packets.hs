@@ -21,7 +21,7 @@ data IncomingPacket
 
 data OutgoingPacket
   = Response PingResponse
-  | Pong
+  | Pong Word64
   deriving (Show)
 
 data PacketState = Handshaking | Status | Login | Play deriving (Show)
@@ -37,7 +37,7 @@ packetStateFrom n
 packetOutId :: OutgoingPacket -> (PacketState, Int)
 packetOutId p
   | Response _ <- p = (Status, 0x00)
-  | Pong <- p = (Status, 0x01)
+  | Pong _ <- p = (Status, 0x01)
   | otherwise = error "Unknown packet ID "
 
 packetInId :: IncomingPacket -> (PacketState, Int)
@@ -111,8 +111,6 @@ getPacket state = do
 putPacketHeaders :: Word8 -> Put -> Put
 putPacketHeaders packetId packetData = do
   let packet = runPut packetData
-  traceM (show packet)
-  traceM ("Length = " ++ show (BS.length packet))
   let len = toInteger $ 1 + BS.length packet
   putVarInt len
   putVarInt $ toInteger packetId
@@ -122,3 +120,4 @@ putPacket :: Putter OutgoingPacket
 putPacket (Response msg) = putPacketHeaders 0x00 $ do
   let encoded = A.encode msg
   putString $ toStrict encoded
+putPacket (Pong payload) = putPacketHeaders 0x01 $ putWord64be payload

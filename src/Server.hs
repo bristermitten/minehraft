@@ -23,3 +23,5 @@ handlePacket Request = do
               },
           description = chat "Hello Haskell!"
         }
+handlePacket (Ping payload) = do
+  return . Just $ Pong payload

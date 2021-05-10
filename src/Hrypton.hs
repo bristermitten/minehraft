@@ -1,4 +1,5 @@
 module Hrypton (runServer) where
+
 import Control.Concurrent (forkFinally)
 import qualified Control.Exception as E
 import Control.Monad (forever, unless, void)
@@ -31,12 +32,10 @@ runServer = do
       let byteResponse = case res of
             Just response -> runPut $ putPacket response
             Nothing -> S.empty
-      print readPacket
-      print res
-      print nextState
-      S.putStrLn byteResponse
+
       unless (S.null byteResponse) $ sendAll s byteResponse
       talk nextState s
+
 -- from the "network-run" package.
 runTCPServer :: Maybe HostName -> ServiceName -> (Socket -> IO a) -> IO a
 runTCPServer mhost port server = withSocketsDo $ do
@@ -44,7 +43,6 @@ runTCPServer mhost port server = withSocketsDo $ do
   E.bracket (open addr) close loop
   where
     resolve = do
-      
       let hints =
             defaultHints
               { addrFlags = [AI_PASSIVE],
