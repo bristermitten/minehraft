@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Server where
 
 import DataTypes
@@ -21,7 +23,10 @@ handlePacket Request = do
                 online = 0,
                 sample = []
               },
-          description = chat "Hello Haskell!"
+          description =
+            (chat "Haskell good kotlin bad")
+              { color = HexString "c4451d"
+              }
         }
 handlePacket (Ping payload) = do
   return . Just $ Pong payload
