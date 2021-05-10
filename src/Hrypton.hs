@@ -20,18 +20,11 @@ runServer = do
       msg <- recv s 1024
       putStrLn $ "Received " ++ show msg
       let readPacket = runGet (getPacket state) msg
-      res <- case readPacket of
-        Left err -> fail err
-        Right packet -> handlePacket packet
+      res <- either fail handlePacket readPacket
 
-      let nextState = case readPacket of
-            Left err -> error err
-            Right (Handshake _ _ _ nextStateInt) -> packetStateFrom nextStateInt
-            Right _ -> state
-
-      let byteResponse = case res of
-            Just response -> runPut $ putPacket response
-            Nothing -> S.empty
+      let nextState = either error (incomingPacketState state) readPacket
+      
+      let byteResponse = maybe S.empty (runPut . putPacket) res
 
       unless (S.null byteResponse) $ sendAll s byteResponse
       talk nextState s

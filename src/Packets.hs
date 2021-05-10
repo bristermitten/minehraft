@@ -121,3 +121,7 @@ putPacket (Response msg) = putPacketHeaders 0x00 $ do
   let encoded = A.encode msg
   putString $ toStrict encoded
 putPacket (Pong payload) = putPacketHeaders 0x01 $ putWord64be payload
+
+incomingPacketState :: PacketState -> IncomingPacket -> PacketState
+incomingPacketState defaultState (Handshake _ _ _ nextStateInt) = packetStateFrom nextStateInt
+incomingPacketState defaultState _ = defaultState
