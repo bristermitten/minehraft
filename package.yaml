@@ -26,6 +26,7 @@ dependencies:
   - cereal
   - text
   - aeson
+  - tuple
 
 library:
   source-dirs: src

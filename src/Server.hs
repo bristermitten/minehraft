@@ -2,19 +2,24 @@ module Server where
 
 import DataTypes
 import Packets
+import Prelude hiding (max)
 
 handlePacket :: IncomingPacket -> IO (Maybe OutgoingPacket)
-handlePacket (Handshake version address port nextState) = do
-  print address
-  if nextState == 2
-    then error "Not supported yet"
-    else
-      if nextState /= 1
-        then return Nothing
-        else error "WHAT"
+handlePacket (Handshake _ _ _ nextState) = do
+  case nextState of
+    2 -> error "Not supported yet"
+    1 -> return Nothing
+    _ -> error "WHAT"
 handlePacket Request = do
   return . Just $
     Response
-      Chat
-        { text = "Hello"
+      PingResponse
+        { version = newVersion "1.16.5" 754,
+          players =
+            Players
+              { max = 100,
+                online = 0,
+                sample = []
+              },
+          description = chat "Hello Haskell!"
         }

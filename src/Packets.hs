@@ -1,23 +1,38 @@
 module Packets where
 
-import Data.Bits (shiftL, (.&.), (.|.))
+import Control.Monad
+import qualified Data.Aeson as A
+import Data.Bits
+import qualified Data.ByteString as BS
+import Data.ByteString.Lazy.Char8 (toStrict)
 import Data.Serialize
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Word
 import DataTypes
+import Debug.Trace
+import Math
 
 data IncomingPacket
-  = Handshake VarInt T.Text Word8 VarInt
+  = Handshake VarInt T.Text Word16 VarInt
   | Request
   | Ping Word64
   deriving (Show, Eq)
 
 data OutgoingPacket
-  = Response Chat
+  = Response PingResponse
   | Pong
+  deriving (Show)
 
-data PacketState = Handshaking | Status | Login | Play
+data PacketState = Handshaking | Status | Login | Play deriving (Show)
+
+packetStateFrom :: (Eq a, Num a) => a -> PacketState
+packetStateFrom n
+  | n == 0 = Handshaking
+  | n == 1 = Status
+  | n == 2 = Login
+  | n == 3 = Play
+  | otherwise = error "Invalid packet state"
 
 packetOutId :: OutgoingPacket -> (PacketState, Int)
 packetOutId p
@@ -45,7 +60,19 @@ getVarInt = do
           -- Clear off the continuation bit.
           return $ (b .&. 0x7f) : bs
         else return [b]
+    -- And there are only seven bits here, so shift by seven, not eight.
     toInt = foldr (\b i -> (i `shiftL` 7) .|. toInteger b) 0
+
+-- This is pretty much a direct translation of the imperative counterpart and so likely isn't very idiomatic
+putVarInt :: Putter VarInt
+putVarInt = loop
+  where
+    loop value = do
+      putWord8 $ unsafeToWord (value .&. 127 .|. 128)
+      let shiftedValue = value `uShiftR` 7
+      if shiftedValue .&. (-128) == 0
+        then loop shiftedValue
+        else putWord8 $ unsafeToWord shiftedValue
 
 getString :: Get T.Text
 getString = do
@@ -53,15 +80,41 @@ getString = do
   byteString <- getByteString $ fromInteger len
   return $ decodeUtf8 byteString
 
-getPacket :: Get IncomingPacket
-getPacket = do
+putText :: Putter T.Text
+putText = putString . encodeUtf8
+
+putString :: Putter BS.ByteString
+putString s = do
+  putVarInt $ toInteger $ BS.length s
+  putByteString s
+
+getPacket :: PacketState -> Get IncomingPacket
+getPacket state = do
   _ <- getVarInt
   packetId <- getVarInt
-  case packetId of
-    0x00 -> do
+  case (state, packetId) of
+    (Handshaking, 0x00) -> do
       protocolVersion <- getVarInt
       address <- getString
-      port <- getWord8
+      port <- getWord16be
       nextState <- getVarInt
       return $! Handshake protocolVersion address port nextState
-    _ -> error $ "Can't decode packet with id: " ++ show packetId
+    (Status, 0x00) -> return Request
+    (Status, 0x01) -> do
+      payload <- getWord64be
+      return $! Ping payload
+    _ -> fail $ "Can't decode packet with id: " ++ show packetId
+
+-- |
+putPacketHeaders :: Word8 -> Put -> Put
+putPacketHeaders id packetData = do
+  let packet = runPut packetData
+  let len = toInteger $ 1 + BS.length packet
+  putVarInt len
+  putVarInt $ toInteger id
+  putByteString packet
+
+putPacket :: Putter OutgoingPacket
+putPacket (Response msg) = putPacketHeaders 0x00 $ do
+  let encoded = A.encode msg
+  putString $ toStrict encoded
