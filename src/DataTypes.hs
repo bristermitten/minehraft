@@ -9,6 +9,7 @@ import Data.Aeson
 import qualified Data.Text as T
 import GHC.Generics
 
+
 type VarInt = Integer
 
 data PingResponse = PingResponse

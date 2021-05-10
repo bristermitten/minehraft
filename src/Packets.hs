@@ -68,11 +68,13 @@ putVarInt :: Putter VarInt
 putVarInt = loop
   where
     loop value = do
-      putWord8 $ unsafeToWord (value .&. 127 .|. 128)
-      let shiftedValue = value `uShiftR` 7
-      if shiftedValue .&. (-128) == 0
-        then loop shiftedValue
-        else putWord8 $ unsafeToWord shiftedValue
+      if value .&. (-128) == 0
+        then putWord8 $ unsafeToWord value
+        else do
+          let toWrite = unsafeToWord (value .&. 127 .|. 128)
+          putWord8 toWrite
+          let shiftedValue = value `uShiftR` 7
+          loop shiftedValue
 
 getString :: Get T.Text
 getString = do
@@ -107,11 +109,13 @@ getPacket state = do
 
 -- |
 putPacketHeaders :: Word8 -> Put -> Put
-putPacketHeaders id packetData = do
+putPacketHeaders packetId packetData = do
   let packet = runPut packetData
+  traceM (show packet)
+  traceM ("Length = " ++ show (BS.length packet))
   let len = toInteger $ 1 + BS.length packet
   putVarInt len
-  putVarInt $ toInteger id
+  putVarInt $ toInteger packetId
   putByteString packet
 
 putPacket :: Putter OutgoingPacket

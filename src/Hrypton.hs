@@ -20,7 +20,7 @@ runServer = do
       putStrLn $ "Received " ++ show msg
       let readPacket = runGet (getPacket state) msg
       res <- case readPacket of
-        Left err -> fail err 
+        Left err -> fail err
         Right packet -> handlePacket packet
 
       let nextState = case readPacket of
@@ -34,8 +34,7 @@ runServer = do
       print readPacket
       print res
       print nextState
-      S.putStr byteResponse
-      putStrLn ""
+      S.putStrLn byteResponse
       unless (S.null byteResponse) $ sendAll s byteResponse
       talk nextState s
 -- from the "network-run" package.
@@ -45,6 +44,7 @@ runTCPServer mhost port server = withSocketsDo $ do
   E.bracket (open addr) close loop
   where
     resolve = do
+      
       let hints =
             defaultHints
               { addrFlags = [AI_PASSIVE],
@@ -54,6 +54,7 @@ runTCPServer mhost port server = withSocketsDo $ do
 
     open addr = E.bracketOnError (openSocket addr) close $ \sock -> do
       setSocketOption sock ReuseAddr 1
+      setSocketOption sock NoDelay 1
       withFdSocket sock setCloseOnExecIfNeeded
       bind sock $ addrAddress addr
       listen sock 1024
