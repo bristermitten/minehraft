@@ -10,13 +10,15 @@ handlePacket :: IncomingPacket -> IO (Maybe OutgoingPacket)
 handlePacket (Handshake _ _ _ nextState) = do
   case nextState of
     2 -> error "Not supported yet"
-    1 -> return Nothing
+    1 -> pure Nothing
     _ -> error "WHAT"
+
+    
 handlePacket Request = do
   return . Just $
     Response
       PingResponse
-        { version = newVersion "1.16.5" 754,
+        { version = newVersion "1.17" 755,
           players =
             Players
               { max = 100,

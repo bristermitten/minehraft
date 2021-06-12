@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dbd3fa9bc608a246c5b36c8b7589988719eedefc0cd6e8e76c8b69bd59653aaf
+-- hash: cc0a437ffff1e8f87b017b0ebdfd97463f52a71633b48c756edad74d844a5dfc
 
 name:           server
 version:        0.1.0.0
@@ -28,9 +28,9 @@ source-repository head
 library
   exposed-modules:
       DataTypes
-      Hrypton
       Lib
       Math
+      MineHraft
       Packets
       Server
   other-modules:

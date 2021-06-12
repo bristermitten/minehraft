@@ -1,5 +1,6 @@
 module Main where
 
-import Hrypton
+import MineHraft
 
+main :: IO ()
 main = runServer
