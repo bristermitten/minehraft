@@ -7,21 +7,21 @@ packages:
 - completed:
     hackage: network-3.1.2.1@sha256:188d6daea8cd91bc3553efd5a90a1e7c6d0425fa66a53baa74db5b6d9fd75c8b,4968
     pantry-tree:
-      size: 3971
       sha256: b4130e25e85c786b91b8ad6137d8a7079859e4d7a9effa1fd4d3785a55b4a9cc
+      size: 3971
   original:
     hackage: network-3.1.2.1
 - completed:
     hackage: cereal-0.5.8.1@sha256:37cb7a78c84412e94592a658768320c41f015f2b8707a433de835afb8ebc18d7,2767
     pantry-tree:
-      size: 641
       sha256: 65ec816e5c39253f0060b8b1019450f5c6fa1e0c06c1c7b4a36f09e186a607fd
+      size: 641
   original:
     hackage: cereal-0.5.8.1
 snapshots:
 - completed:
-    size: 567241
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/10.yaml
-    sha256: 321b3b9f0c7f76994b39e0dabafdc76478274b4ff74cc5e43d410897a335ad3b
+    sha256: 32716534fff554b7f90762130fdb985cabf29f157758934dd1c8f3892a646430
+    size: 586103
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
   original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/10.yaml
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
